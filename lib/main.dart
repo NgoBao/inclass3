@@ -36,7 +36,7 @@ class _ValentineHomeState extends State<ValentineHome>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 5),
     )..repeat();
 
     _smoothAnimation = CurvedAnimation(
