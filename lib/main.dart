@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:math';
 import 'package:flutter/material.dart';
 
@@ -8,9 +10,10 @@ class ValentineApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ValentineHome(),
+      theme: ThemeData(useMaterial3: true),
+      home: const ValentineHome(),
     );
   }
 }
@@ -34,23 +37,18 @@ class _ValentineHomeState extends State<ValentineHome>
   String selectedEmoji = 'Sweet Heart';
 
   late AnimationController _controller;
-  late Animation<double> _smoothAnimation;
+  bool showBalloons = false;
 
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
-    )..repeat();
-
-    _smoothAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,  // smooth ending
-    );
+      duration: const Duration(milliseconds: 800),
+      lowerBound: 0.9,
+      upperBound: 1.1,
+    )..repeat(reverse: true);
   }
-
 
   @override
   void dispose() {
@@ -58,24 +56,24 @@ class _ValentineHomeState extends State<ValentineHome>
     super.dispose();
   }
 
+  void toggleBalloons() {
+    setState(() => showBalloons = !showBalloons);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isSweet = selectedEmoji == 'Sweet Heart';
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Cupid's Canvas")),
+      appBar: AppBar(title: const Text("Cupid's Canvas 💘")),
       body: Container(
         decoration: BoxDecoration(
-          gradient: isSweet
-              ? const LinearGradient(
-            colors: [Color(0xFFFFC1CC), Color(0xFFFF80AB)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          )
-              : const LinearGradient(
-            colors: [Color(0xFFFFF3E0), Color(0xFFFFCC80)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 0.9,
+            colors: isSweet
+                ? [Color(0xFFFFCDD2), Color(0xFFE91E63)]
+                : [Color(0xFFD1C4E9), Color(0xFF673AB7)],
           ),
         ),
         child: Column(
@@ -89,14 +87,22 @@ class _ValentineHomeState extends State<ValentineHome>
               onChanged: (value) =>
                   setState(() => selectedEmoji = value ?? selectedEmoji),
             ),
-            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: toggleBalloons,
+              child: const Text("Balloon Celebration 🎈"),
+            ),
+            const SizedBox(height: 16),
             Expanded(
               child: Center(
-                child: CustomPaint(
-                  size: const Size(350, 350),
-                  painter: HeartEmojiPainter(
-                    type: selectedEmoji,
-                    animation: _smoothAnimation,
+                child: ScaleTransition(
+                  scale: _controller,
+                  child: CustomPaint(
+                    size: const Size(300, 300),
+                    painter: HeartEmojiPainter(
+                      type: selectedEmoji,
+                      showBalloons: showBalloons,
+                      animation: _controller,
+                    ),
                   ),
                 ),
               ),
@@ -110,16 +116,23 @@ class _ValentineHomeState extends State<ValentineHome>
 
 class HeartEmojiPainter extends CustomPainter {
   final String type;
-  final Animation<double> animation;
+  final bool showBalloons;
+  final AnimationController animation;
 
   HeartEmojiPainter({
     required this.type,
+    required this.showBalloons,
     required this.animation,
-  }) : super(repaint: animation);
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
+
+    // ===== PARTY BALLOONS BACKGROUND =====
+    if (type == 'Party Heart') {
+      _drawPartyBalloons(canvas, size, center);
+    }
 
     // ===== GLOW TRAIL =====
     final glowPaint = Paint()
@@ -129,60 +142,35 @@ class HeartEmojiPainter extends CustomPainter {
     final glowPath = _heartPath(center);
     canvas.drawPath(glowPath, glowPaint);
 
-    // ===== HEART WITH GRADIENT =====
-    final gradient = LinearGradient(
-      colors: () {
-        if (type == 'Party Heart') {
-          return [Colors.pinkAccent, Colors.deepPurple];
-        } else if (type == 'Smiley Heart') {
-          return [Colors.yellow.shade300, Colors.pink];
-        } else if (type == 'Heart-Eyes Heart') {
-          return [Colors.pink.shade200, Colors.purpleAccent];
-        } else {
-          // Sweet Heart default
-          return [Colors.red, Colors.pink];
-        }
-      }(),
-    // PARTY BALLOONS BACKGROUND
-    if (type == 'Party Heart') {
-      _drawPartyBalloons(canvas, size, center);
-    }
-
-    final double scale =
-        1.0 + 0.12 * sin(animation.value * 2 * pi);
-
+    final double scale = 1.0 + 0.12 * sin(animation.value * 2 * pi);
 
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.scale(scale);
     canvas.translate(-center.dx, -center.dy);
 
-    // HEART COLOR
+    // ===== HEART COLOR =====
     final gradient = type == 'Sweet Heart'
         ? const LinearGradient(
-      colors: [Color.fromARGB(255, 194, 180, 179), Color.fromARGB(255, 235, 8, 8)],
-    )
-        : const LinearGradient(
-      colors: [Colors.pinkAccent, Colors.deepPurple],
-    );
+            colors: [
+              Color.fromARGB(255, 194, 180, 179),
+              Color.fromARGB(255, 235, 8, 8),
+            ],
+          )
+        : const LinearGradient(colors: [Colors.pinkAccent, Colors.deepPurple]);
 
     final rect = Rect.fromCenter(center: center, width: 220, height: 220);
     final paint = Paint()
-      ..shader = gradient.createShader(rect);
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.fill;
 
     canvas.drawPath(_heartPath(center), paint);
 
     // ===== FACE =====
-    if (type != 'Heart-Eyes Heart') {
-      final eyePaint = Paint()..color = Colors.white;
-      canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 5, eyePaint);
-      canvas.drawCircle(Offset(center.dx + 30, center.dy - 10), 5, eyePaint);
-    }
-
-    
     final eyePaint = Paint()..color = Colors.white;
     canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 10, eyePaint);
     canvas.drawCircle(Offset(center.dx + 30, center.dy - 10), 10, eyePaint);
+
     final mouthPaint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke
@@ -214,14 +202,6 @@ class HeartEmojiPainter extends CustomPainter {
 
     // ===== SPARKLES =====
     _drawSparkles(canvas, center);
-
-    canvas.drawArc(
-      Rect.fromCircle(center: Offset(center.dx, center.dy + 20), radius: 30),
-      0,
-      pi,
-      false,
-      mouthPaint,
-    );
 
     canvas.restore();
   }
@@ -403,19 +383,7 @@ class HeartEmojiPainter extends CustomPainter {
     }
   }
 
-  // ===== BALLOONS =====
-  void _drawBalloons(Canvas canvas, Size size) {
-    final random = Random();
-    for (int i = 0; i < 6; i++) {
-      final paint = Paint()
-        ..color = Colors.primaries[random.nextInt(Colors.primaries.length)];
-      final x = random.nextDouble() * size.width;
-      final y = random.nextDouble() * size.height / 2;
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset(x, y), width: 30, height: 40),
-        paint,
-      );
-      canvas.drawLine(Offset(x, y + 20), Offset(x, y + 60), Paint());
+  // ===== PARTY BALLOONS =====
   void _drawPartyBalloons(Canvas canvas, Size size, Offset center) {
     for (int i = 0; i < 40; i++) {
       final paint = Paint()
@@ -425,7 +393,6 @@ class HeartEmojiPainter extends CustomPainter {
       final speed = 0.5 + (i % 5) * 0.2;
 
       final angle = (animation.value * 20 * pi * speed) + (i * pi / 10);
-
 
       final x = center.dx + cos(angle) * radius;
       final y = center.dy + sin(angle) * radius;
@@ -442,11 +409,8 @@ class HeartEmojiPainter extends CustomPainter {
       );
     }
   }
-  @override
-  bool shouldRepaint(covariant HeartEmojiPainter oldDelegate) =>
-      oldDelegate.type != type || oldDelegate.showBalloons != showBalloons;
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
 
+  @override
+  bool shouldRepaint(HeartEmojiPainter oldDelegate) =>
+      oldDelegate.type != type || oldDelegate.showBalloons != showBalloons;
 }
