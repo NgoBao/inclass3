@@ -36,7 +36,7 @@ class _ValentineHomeState extends State<ValentineHome>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 20),
+      duration: const Duration(seconds: 2),
     )..repeat();
 
     _smoothAnimation = CurvedAnimation(
@@ -57,7 +57,7 @@ class _ValentineHomeState extends State<ValentineHome>
     final isSweet = selectedEmoji == 'Sweet Heart';
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Cupid's Canvas 💘")),
+      appBar: AppBar(title: const Text("Cupid's Canvas")),
       body: Container(
         decoration: BoxDecoration(
           gradient: isSweet
@@ -120,7 +120,6 @@ class HeartEmojiPainter extends CustomPainter {
       _drawPartyBalloons(canvas, size, center);
     }
 
-  
     final double scale =
         1.0 + 0.12 * sin(animation.value * 2 * pi);
 
@@ -130,10 +129,10 @@ class HeartEmojiPainter extends CustomPainter {
     canvas.scale(scale);
     canvas.translate(-center.dx, -center.dy);
 
-    // 💖 HEART COLOR
+    // HEART COLOR
     final gradient = type == 'Sweet Heart'
         ? const LinearGradient(
-      colors: [Color.fromARGB(255, 194, 180, 179), Color.fromARGB(255, 0, 0, 0)],
+      colors: [Color.fromARGB(255, 194, 180, 179), Color.fromARGB(255, 235, 8, 8)],
     )
         : const LinearGradient(
       colors: [Colors.pinkAccent, Colors.deepPurple],
@@ -145,12 +144,10 @@ class HeartEmojiPainter extends CustomPainter {
 
     canvas.drawPath(_heartPath(center), paint);
 
-    // 👀 EYES
+    
     final eyePaint = Paint()..color = Colors.white;
     canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 10, eyePaint);
     canvas.drawCircle(Offset(center.dx + 30, center.dy - 10), 10, eyePaint);
-
-    // 😊 MOUTH
     final mouthPaint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke
