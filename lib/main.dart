@@ -143,11 +143,12 @@ class HeartEmojiPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
     canvas.drawArc(
-        Rect.fromCircle(center: Offset(center.dx, center.dy + 20), radius: 30),
-        0,
-        pi,
-        false,
-        mouthPaint);
+      Rect.fromCircle(center: Offset(center.dx, center.dy + 20), radius: 30),
+      0,
+      pi,
+      false,
+      mouthPaint,
+    );
 
     // ===== PARTY FEATURES =====
     if (type == 'Party Heart') {
@@ -167,10 +168,22 @@ class HeartEmojiPainter extends CustomPainter {
   Path _heartPath(Offset center) {
     return Path()
       ..moveTo(center.dx, center.dy + 60)
-      ..cubicTo(center.dx + 110, center.dy - 10, center.dx + 60,
-          center.dy - 120, center.dx, center.dy - 40)
-      ..cubicTo(center.dx - 60, center.dy - 120, center.dx - 110,
-          center.dy - 10, center.dx, center.dy + 60)
+      ..cubicTo(
+        center.dx + 110,
+        center.dy - 10,
+        center.dx + 60,
+        center.dy - 120,
+        center.dx,
+        center.dy - 40,
+      )
+      ..cubicTo(
+        center.dx - 60,
+        center.dy - 120,
+        center.dx - 110,
+        center.dy - 10,
+        center.dx,
+        center.dy + 60,
+      )
       ..close();
   }
 
@@ -190,10 +203,13 @@ class HeartEmojiPainter extends CustomPainter {
       final paint = Paint()
         ..color = Colors.primaries[random.nextInt(Colors.primaries.length)];
       canvas.drawCircle(
-          Offset(random.nextDouble() * size.width,
-              random.nextDouble() * size.height),
-          3,
-          paint);
+        Offset(
+          random.nextDouble() * size.width,
+          random.nextDouble() * size.height,
+        ),
+        3,
+        paint,
+      );
     }
   }
 
@@ -206,10 +222,8 @@ class HeartEmojiPainter extends CustomPainter {
       final angle = i * pi / 4;
       final dx = center.dx + 130 * cos(angle);
       final dy = center.dy + 130 * sin(angle);
-      canvas.drawLine(
-          Offset(dx - 5, dy), Offset(dx + 5, dy), sparklePaint);
-      canvas.drawLine(
-          Offset(dx, dy - 5), Offset(dx, dy + 5), sparklePaint);
+      canvas.drawLine(Offset(dx - 5, dy), Offset(dx + 5, dy), sparklePaint);
+      canvas.drawLine(Offset(dx, dy - 5), Offset(dx, dy + 5), sparklePaint);
     }
   }
 
@@ -220,13 +234,15 @@ class HeartEmojiPainter extends CustomPainter {
         ..color = Colors.primaries[random.nextInt(Colors.primaries.length)];
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height / 2;
-      canvas.drawOval(Rect.fromCenter(center: Offset(x, y), width: 30, height: 40), paint);
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(x, y), width: 30, height: 40),
+        paint,
+      );
       canvas.drawLine(Offset(x, y + 20), Offset(x, y + 60), Paint());
     }
   }
 
   @override
   bool shouldRepaint(covariant HeartEmojiPainter oldDelegate) =>
-      oldDelegate.type != type ||
-      oldDelegate.showBalloons != showBalloons;
+      oldDelegate.type != type || oldDelegate.showBalloons != showBalloons;
 }
