@@ -25,7 +25,13 @@ class ValentineHome extends StatefulWidget {
 
 class _ValentineHomeState extends State<ValentineHome>
     with SingleTickerProviderStateMixin {
-  final List<String> emojiOptions = ['Sweet Heart', 'Party Heart'];
+  final List<String> emojiOptions = [
+    'Sweet Heart',
+    'Party Heart',
+    'Heart-Eyes Heart',
+    'Smiley Heart',
+  ];
+
   String selectedEmoji = 'Sweet Heart';
 
   late AnimationController _controller;
@@ -121,9 +127,18 @@ class HeartEmojiPainter extends CustomPainter {
 
     // ===== HEART WITH GRADIENT =====
     final gradient = LinearGradient(
-      colors: type == 'Party Heart'
-          ? [Colors.pinkAccent, Colors.deepPurple]
-          : [Colors.red, Colors.pink],
+      colors: () {
+        if (type == 'Party Heart') {
+          return [Colors.pinkAccent, Colors.deepPurple];
+        } else if (type == 'Smiley Heart') {
+          return [Colors.yellow.shade300, Colors.pink];
+        } else if (type == 'Heart-Eyes Heart') {
+          return [Colors.pink.shade200, Colors.purpleAccent];
+        } else {
+          // Sweet Heart default
+          return [Colors.red, Colors.pink];
+        }
+      }(),
     );
 
     final rect = Rect.fromCenter(center: center, width: 220, height: 220);
@@ -134,9 +149,11 @@ class HeartEmojiPainter extends CustomPainter {
     canvas.drawPath(_heartPath(center), paint);
 
     // ===== FACE =====
-    final eyePaint = Paint()..color = Colors.white;
-    canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 10, eyePaint);
-    canvas.drawCircle(Offset(center.dx + 30, center.dy - 10), 10, eyePaint);
+    if (type != 'Heart-Eyes Heart') {
+      final eyePaint = Paint()..color = Colors.white;
+      canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 5, eyePaint);
+      canvas.drawCircle(Offset(center.dx + 30, center.dy - 10), 5, eyePaint);
+    }
 
     final mouthPaint = Paint()
       ..color = Colors.black
@@ -154,6 +171,17 @@ class HeartEmojiPainter extends CustomPainter {
     if (type == 'Party Heart') {
       _drawPartyHat(canvas, center);
       _drawConfetti(canvas, size);
+    }
+
+    // ===== Heart-Eyes HEART =====
+    if (type == 'Heart-Eyes Heart') {
+      _drawHeartEyes(canvas, center);
+    }
+
+    // ===== SMILEY HEART =====
+    if (type == 'Smiley Heart') {
+      _drawSmileyFace(canvas, center);
+      _drawTinyHearts(canvas, size, center);
     }
 
     // ===== SPARKLES =====
@@ -187,6 +215,16 @@ class HeartEmojiPainter extends CustomPainter {
       ..close();
   }
 
+  Path _tinyHeartPath(double cx, double cy) {
+    final path = Path()
+      ..moveTo(cx, cy)
+      ..cubicTo(cx - 15, cy - 15, cx - 28, cy - 36, cx, cy - 24)
+      ..cubicTo(cx + 28, cy - 36, cx + 15, cy - 15, cx, cy)
+      ..close();
+    return path;
+  }
+
+  // ===== PARTY HAT =====
   void _drawPartyHat(Canvas canvas, Offset center) {
     final hatPaint = Paint()..color = Colors.yellow;
     final hatPath = Path()
@@ -197,6 +235,7 @@ class HeartEmojiPainter extends CustomPainter {
     canvas.drawPath(hatPath, hatPaint);
   }
 
+  // ===== CONFETTI =====
   void _drawConfetti(Canvas canvas, Size size) {
     final random = Random();
     for (int i = 0; i < 30; i++) {
@@ -213,6 +252,110 @@ class HeartEmojiPainter extends CustomPainter {
     }
   }
 
+  // ===== HEART EYES FOR HEART =====
+  void _drawHeartEyes(Canvas canvas, Offset center) {
+    // Background circle behind each eye
+    final bgPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+
+    // Heart eye color
+    final heartPaint = Paint()
+      ..color = Colors.pinkAccent
+      ..style = PaintingStyle.fill;
+
+    // Shadow paint for 3D pop
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+
+    // Highlight paint for glossy top
+    final highlightPaint = Paint()
+      ..color = Colors.white.withOpacity(0.7)
+      ..style = PaintingStyle.fill;
+
+    // LEFT EYE
+    final leftCenter = Offset(center.dx - 30, center.dy - 10);
+
+    // Shadow behind heart
+    canvas.drawPath(
+      _tinyHeartPath(leftCenter.dx + 2, leftCenter.dy + 2),
+      shadowPaint,
+    );
+
+    // Yellow background
+    canvas.drawCircle(leftCenter, 18, bgPaint);
+
+    // Heart eye
+    canvas.drawPath(_tinyHeartPath(leftCenter.dx, leftCenter.dy), heartPaint);
+
+    // Highlight (small circle)
+    canvas.drawCircle(
+      Offset(leftCenter.dx - 6, leftCenter.dy - 10),
+      4,
+      highlightPaint,
+    );
+
+    // RIGHT EYE
+    final rightCenter = Offset(center.dx + 30, center.dy - 10);
+
+    canvas.drawPath(
+      _tinyHeartPath(rightCenter.dx + 2, rightCenter.dy + 2),
+      shadowPaint,
+    );
+
+    canvas.drawCircle(rightCenter, 18, bgPaint);
+
+    canvas.drawPath(_tinyHeartPath(rightCenter.dx, rightCenter.dy), heartPaint);
+
+    canvas.drawCircle(
+      Offset(rightCenter.dx - 6, rightCenter.dy - 10),
+      4,
+      highlightPaint,
+    );
+  }
+
+  // ===== SMILEY FACE =====
+  void _drawSmileyFace(Canvas canvas, Offset center) {
+    final eyePaint = Paint()..color = Colors.black;
+
+    canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 8, eyePaint);
+    canvas.drawCircle(Offset(center.dx + 30, center.dy - 10), 8, eyePaint);
+
+    final smilePaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(center.dx, center.dy + 20), radius: 30),
+      0,
+      pi,
+      false,
+      smilePaint,
+    );
+  }
+
+  // ===== TINY HEARTS AROUND SMILEY HEART =====
+  void _drawTinyHearts(Canvas canvas, Size size, Offset center) {
+    final random = Random();
+    final paint = Paint()..color = const Color.fromARGB(255, 246, 3, 250);
+
+    for (int i = 0; i < 12; i++) {
+      final dx = center.dx + random.nextInt(160) - 80;
+      final dy = center.dy + random.nextInt(160) - 80;
+
+      final Path tiny = Path()
+        ..moveTo(dx, dy)
+        ..cubicTo(dx - 6, dy - 6, dx - 10, dy - 16, dx, dy - 10)
+        ..cubicTo(dx + 10, dy - 16, dx + 6, dy - 6, dx, dy)
+        ..close();
+
+      canvas.drawPath(tiny, paint);
+    }
+  }
+
+  // ===== SPARKLES =====
   void _drawSparkles(Canvas canvas, Offset center) {
     final sparklePaint = Paint()
       ..color = Colors.white
@@ -227,6 +370,7 @@ class HeartEmojiPainter extends CustomPainter {
     }
   }
 
+  // ===== BALLOONS =====
   void _drawBalloons(Canvas canvas, Size size) {
     final random = Random();
     for (int i = 0; i < 6; i++) {
